@@ -4,7 +4,7 @@
     <div class="col-sm-12" align="center">
       {% block footer_nav %}
         <a href="{{ h.url_for(controller='home', action='about') }}">{{ _('About {0}').format(g.site_title) }}</a>&nbsp;&nbsp;|&nbsp;
-        <a href="{{ h.url_for(controller='ckanext.irish_theme.controller:IrishThemeController', action='contact') }}">Contact Us</a>&nbsp;&nbsp;|&nbsp;
+        <a href="{{ h.url_for(controller='ckanext.geoc_theme.controller:IrishThemeController', action='contact') }}">Contact Us</a>&nbsp;&nbsp;|&nbsp;
         <a href="{{ h.url_for(controller='ckanext.feedback.controller:FeedbackController', action='feedback') }}">Data Requests</a>
       {% endblock %}
     </div>
