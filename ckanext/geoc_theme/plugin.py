@@ -11,3 +11,12 @@ class Geoc_ThemePlugin(plugins.SingletonPlugin):
         toolkit.add_template_directory(config_, 'templates')
         toolkit.add_public_directory(config_, 'public')
         toolkit.add_resource('fanstatic', 'geoc_theme')
+		
+	
+
+	def before_map(self, m):
+		m.connect('contact', '/contact', controller='ckanext.geoc_theme.controller:IrishThemeController', action='contact')
+		m.connect('freedomofinformation', '/freedomofinformation', controller='ckanext.geoc_theme.controller:IrishThemeController', action='foi')
+		m.connect('publicsectorinformation', '/publicsectorinformation', controller='ckanext.geoc_theme.controller:IrishThemeController', action='psi')
+		return m
+

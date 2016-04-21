@@ -1,45 +1,59 @@
-{% extends "organization/index.html" %}
+{% extends "page.html" %}
 
 {% set organization = c.group_dict %}
 
-{% block add_action_content %}{% endblock %}
-
-{% block subtitle %}{{ organization.display_name }}{% endblock %}
+{% block subtitle %}{{ c.group_dict.display_name }} - {{ _('Organizations') }}{% endblock %}
 
 {% block breadcrumb_content %}
   <li>{% link_for _('Organizations'), controller='organization', action='index' %}</li>
   {% block breadcrumb_content_inner %}
     <li>{% link_for organization.display_name|truncate(35), controller='organization', action='read', id=organization.name %}</li>
-    <li class="active">{% link_for _('Admin'), controller='organization', action='edit', id=organization.name %}</li>
+    <li class="active">{% link_for _('Manage'), controller='organization', action='edit', id=organization.name %}</li>
   {% endblock %}
 {% endblock %}
 
-{% block actions_content %}
-  {% if organization and h.check_access('organization_update', {'id': organization.id}) %}
-    <li>{% link_for _('View organization'), controller='organization', action='read', id=organization.name, class_='btn', icon='eye-open' %}</li>
-  {% endif %}
-  {# <li>{% link_for _('History'), controller='organization', action='history', id=organization.name, class_='btn', icon='undo' %}</li> #}
-{% endblock %}
-
-{% block primary_content %}
-  <section class="module">
-    {% block primary_content_header %}
-      <header class="module-content page-header">
-        <ul class="nav nav-tabs">
-          <li{% if c.action == 'edit' %} class="active"{% endif %}>
-            {% link_for _('Info'), controller='organization', action='edit', id=organization.name, icon='info-sign' %}
-          </li>
-          {% if h.check_access('organization_member_create', {'id': organization.id}) %}
-          <li{% if c.action == 'members' or c.action =='member_new' %} class="active"{% endif %}>
-            {% link_for _('Members'), controller='organization', action='members', id=organization.name, icon='group' %}
-          </li>
+{% block primary %}
+  <div class="panel panel-default">
+    {% block primary_content %}     
+      <article class="module col-sm-12">
+        {% block page_header %}
+          <header class="module-content page-header">
+            {% if self.content_action() | trim %}
+              <div class="content_action" align="right">
+                {% block content_action %}
+                  {% if organization and h.check_access('organization_update', {'id': organization.id}) %}
+                    {% link_for _('View'), controller='organization', action='read', id=organization.name, class_='btn btn-primary', icon='eye-open' %}
+                  {% endif %}
+                {% endblock %}
+              </div>
+            {% endif %}
+            <ul class="nav nav-tabs hidden-xs">
+              {% block content_primary_nav %}
+                {{ h.build_nav_icon('organization_edit', _('Edit'), id=c.group_dict.name) }}
+                {{ h.build_nav_icon('organization_bulk_process', _('Datasets'), id=c.group_dict.name) }}
+                {{ h.build_nav_icon('organization_members', _('Members'), id=c.group_dict.name) }}
+              {% endblock %}
+            </ul>
+            <!-- Custom Menu for Mobile Screens -->
+            <ul class="nav nav-tabs visible-xs">
+               {{ h.build_nav_icon('organization_edit', _(''), id=c.group_dict.name) }}
+               {{ h.build_nav_icon('organization_bulk_process', _(''), id=c.group_dict.name) }}
+               {{ h.build_nav_icon('organization_members', _(''), id=c.group_dict.name) }}
+            </ul>
+          </header>
+        {% endblock %}
+        <div class="module-content">
+          {% if self.page_primary_action() | trim %}
+            <div class="page_primary_action">
+              {% block page_primary_action %}{% endblock %}
+            </div>
           {% endif %}
-        </ul>
-      </header>
+          {% block primary_content_inner %}
+          {% endblock %}
+        </div>
+      </article>
     {% endblock %}
-    {% block primary_content_inner %}
-    {% endblock %}
-  </section>
+  </div><!--/row-->
 {% endblock %}
 
 {% block secondary_content %}

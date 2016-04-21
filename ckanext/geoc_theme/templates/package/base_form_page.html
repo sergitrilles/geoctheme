@@ -1,27 +1,23 @@
-{% extends "package/base.html" %}
+{% extends "package/edit_base.html" %}
 
+{% block primary %}
+<div class="panel panel-default">
 {% block primary_content %}
-  <section class="module">
+  <section class="module col-sm-12">
+    {% block page_header %}{% endblock %}
     <div class="module-content">
-      {% block form %}{{ c.form | safe }}{% endblock %}
+      {% block primary_content_inner %}
+        {% block form %}{{ c.form | safe }}{% endblock %}
+      {% endblock %}
     </div>
   </section>
 {% endblock %}
+</div>
+{% endblock %}
+
 
 {% block secondary_content %}
   {% block info_module %}
-    <section class="module module-narrow module-shallow">
-      <h2 class="module-heading"><i class="icon-info-sign"></i> {{ _('What are datasets?') }}</h2>
-      <div class="module-content">
-        <p>
-          {% trans %}
-          Datasets are simply used to group related pieces of data. These
-          can then be found under a single url with a description and
-          licensing information.
-          {% endtrans %}
-        </p>
-      </div>
-    </section>
   {% endblock %}
 
   {% block resources_module %}

@@ -1,80 +1,91 @@
 {% extends "package/base.html" %}
 
-{% block subtitle %}{{ pkg.title or pkg.name }}{% endblock %}
+{% block subtitle %}{{ pkg.title or pkg.name }} - {{ super() }}{% endblock %}
 
 {% block links -%}
-    {{ super() }}
-    <link rel="alternate" type="application/rdf+xml" href="{{ h.url_for(controller='package', action='read', id=pkg.id, format='rdf', qualified=True) }}"/>
+  {{ super() }}
+  <link rel="alternate" type="application/rdf+xml" href="{{ h.url_for(controller='package', action='read', id=pkg.id, format='rdf', qualified=True) }}"/>
 {% endblock -%}
 
-{% block actions_content %}
-  <li>{% link_for _('History'), controller='package', action='history', id=pkg.name, class_='btn', icon='undo' %}</li>
-  {% if h.check_access('package_update', {'id':pkg.id }) %}
-    <li>{% link_for _('Edit'), controller='package', action='edit', id=pkg.name, class_='btn btn-primary', icon='wrench' %}</li>
-  {% endif %}
-  <li>{{ h.follow_button('dataset', pkg.id) }}</li>
-{% endblock %}
+{% block head_extras -%}
+  {{ super() }}
+  {% set description = h.markdown_extract(pkg.notes, extract_length=200)|forceescape %}
+  <meta property="og:title" content="{{ h.dataset_display_name(pkg) }} - {{ g.site_title }}">
+  <meta property="og:description" content="{{ description|forceescape }}">
+{% endblock -%}
 
-{% block primary_content %}
-  <article class="module prose">
-    {% block page_header %}
-      <header class="module-content page-header">
-        <ul class="nav nav-tabs">
-          {% block page_header_tabs %}
-            {{ h.build_nav_icon('dataset_read', _('Dataset'), id=pkg.name) }}
-            {{ h.build_nav_icon('dataset_activity', _('Activity Stream'), id=pkg.name) }}
-            {{ h.build_nav_icon('related_list', _('Related'), id=pkg.name) }}
-          {% endblock %}
-        </ul>
-      </header>
-    {% endblock %}
-
-    {% block package_revision_info %}
-      {% if c.pkg_revision_id %}
-        <div class="module info alert alert-info">
-          <p class="module-content">
-            {% set timestamp = h.render_datetime(c.pkg_revision_timestamp, with_hours=True) %}
-            {% set url = h.url(controller='package', action='read', id=pkg.name) %}
-
-            {% if c.pkg_revision_not_latest %}
-              {% trans timestamp=timestamp, url=url %}This is an old revision of this dataset, as edited at {{ timestamp }}. It may differ significantly from the <a href="{{ url }}">current revision</a>.{% endtrans %}
-            {% else %}
-              {% trans timestamp=timestamp %}This is the current revision of this dataset, as edited at {{ timestamp }}.{% endtrans %}
+{% block primary %}
+  <div class="panel panel-default">
+    {% block primary_content %}     
+      <article class="module col-sm-12">
+        {% block page_header %}
+          <header class="module-content page-header">
+            {% if self.content_action() | trim %}
+              <div class="content_action" align="right">
+                {% block content_action %}
+                  {% if h.check_access('package_update', {'id':pkg.id }) %}
+                    {% link_for _('Manage'), controller='package', action='edit', id=pkg.name, class_='btn btn-primary', icon='wrench' %}
+                  {% endif %}
+                {% endblock %}
+              </div>
             {% endif %}
-          </p>
+            <ul class="nav nav-tabs hidden-xs">
+            {% block content_primary_nav %}
+              {{ h.build_nav_icon('dataset_read', _('Dataset'), id=pkg.name) }}
+              {{ h.build_nav_icon('dataset_groups', _('Groups'), id=pkg.name) }}
+              {{ h.build_nav_icon('dataset_activity', _('Activity Stream'), id=pkg.name) }}
+              {{ h.build_nav_icon('related_list', _('Related'), id=pkg.name) }}
+            {% endblock %}
+            </ul>
+            <!-- custom for mobile screens -->
+            <ul class="nav nav-tabs visible-xs">
+              {{ h.build_nav_icon('dataset_read', _(''), id=pkg.name) }}
+              {{ h.build_nav_icon('dataset_groups', _(''), id=pkg.name) }}
+              {{ h.build_nav_icon('dataset_activity', _(''), id=pkg.name) }}
+              {{ h.build_nav_icon('related_list', _(''), id=pkg.name) }}
+            </ul>
+          </header>
+        {% endblock %}
+        <div class="module-content">
+          {% if self.page_primary_action() | trim %}
+            <div class="page_primary_action" align="right">
+              {% block page_primary_action %}{% endblock %}
+            </div>
+          {% endif %}
+          {% block primary_content_inner %}
+            {% block package_revision_info %}
+              {% if c.pkg_revision_id %}
+                <div class="module info alert alert-info">
+                  <p class="module-content">
+                    {% set timestamp = h.render_datetime(c.pkg_revision_timestamp, with_hours=True) %}
+                    {% set url = h.url(controller='package', action='read', id=pkg.name) %}
+                    {% if c.pkg_revision_not_latest %}
+                      {% trans timestamp=timestamp, url=url %}This is an old revision of this dataset, as edited at {{ timestamp }}. It may differ significantly from the <a href="{{ url }}">current revision</a>.{% endtrans %}
+                    {% else %}
+                      {% trans timestamp=timestamp %}This is the current revision of this dataset, as edited at {{ timestamp }}.{% endtrans %}
+                    {% endif %}
+                  </p>
+                </div>
+              {% endif %}
+            {% endblock %}
+          {% endblock %}
         </div>
-      {% endif %}
+      </article>
     {% endblock %}
-
-    {% block primary_content_inner %}{% endblock %}
-  </article>
+  </div><!--/row-->
 {% endblock %}
 
 {% block secondary_content %}
 
   {% block secondary_help_content %}{% endblock %}
+  <ul class="list-unstyled hidden-xs">
+  {% block package_info %}
+    {% snippet 'package/snippets/info.html', pkg=pkg %}
+  {% endblock %}
 
   {% block package_organization %}
     {% if pkg.organization %}
-      {% snippet "snippets/organization.html", organization=pkg.organization %}
-    {% endif %}
-  {% endblock %}
-
-  {% block package_groups %}
-    {% if pkg.groups %}
-      <div class="module module-narrow">
-        <h2 class="module-heading"><i class="icon-folder-open"></i> {{ _('Groups') }}</h2>
-        <ul class="nav nav-simple">
-          {% for group in pkg.groups %}
-            <li class="nav-item">
-              <a href="{{ h.url_for(controller='group', action='read', id=group.name) }}">
-                {% set group_trans = h.trans_dict(group) %}
-                {{ group_trans.title or group_trans.name }}
-              </a>
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
+      {% snippet "snippets/organization.html", organization=pkg.organization, has_context_title=true %}
     {% endif %}
   {% endblock %}
 
@@ -85,5 +96,5 @@
   {% block package_license %}
     {% snippet "snippets/license.html", pkg_dict=pkg %}
   {% endblock %}
-
+  </ul>
 {% endblock %}
